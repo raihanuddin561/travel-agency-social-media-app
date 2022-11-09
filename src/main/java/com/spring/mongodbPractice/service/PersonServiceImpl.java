@@ -5,6 +5,8 @@ import com.spring.mongodbPractice.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class PersonServiceImpl implements PersonService{
     @Autowired
@@ -13,5 +15,15 @@ public class PersonServiceImpl implements PersonService{
     public String save(Person person) {
 
         return personRepository.save(person).getPersonId();
+    }
+
+    @Override
+    public List<Person> getPersons() {
+        return personRepository.findAll();
+    }
+
+    @Override
+    public List<Person> getPersonsStartWith(String name) {
+        return personRepository.findByFirstNameStartsWithIgnoreCase(name);
     }
 }
