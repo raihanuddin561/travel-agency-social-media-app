@@ -26,4 +26,14 @@ public class PersonServiceImpl implements PersonService{
     public List<Person> getPersonsStartWith(String name) {
         return personRepository.findByFirstNameStartsWithIgnoreCase(name);
     }
+
+    @Override
+    public void delete(String id) {
+        personRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Person> getByPersonAge(Integer minAge, Integer maxAge) {
+       return personRepository.findByAgeBetween(minAge,maxAge);
+    }
 }

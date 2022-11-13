@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface PersonRepository extends MongoRepository<Person,String> {
     List<Person> findByFirstNameStartsWithIgnoreCase(String name);
+
+    List<Person> findByAgeBetween(Integer minAge, Integer maxAge);
 }

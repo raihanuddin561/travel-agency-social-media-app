@@ -23,6 +23,13 @@ public class PersonController {
     public List<Person> getPersonStartWith(@RequestParam("name") String name){
         List<Person> list = personService.getPersonsStartWith(name);
         return list;
-       // return new ResponseEntity<>(list, HttpStatus.OK);
+    }
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable String id){
+        personService.delete(id);
+    }
+    @GetMapping("/age")
+    public List<Person> getByPersonAge(@RequestParam Integer minAge,@RequestParam Integer maxAge){
+       return personService.getByPersonAge(minAge,maxAge);
     }
 }

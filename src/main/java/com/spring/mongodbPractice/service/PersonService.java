@@ -10,4 +10,7 @@ public interface PersonService {
     List<Person> getPersons();
 
     List<Person> getPersonsStartWith(String name);
+    public void delete(String id);
+
+    List<Person> getByPersonAge(Integer minAge, Integer maxAge);
 }
