@@ -16,5 +16,5 @@ public class Person {
     private String lastName;
     private Integer age;
     private List<String> hobbies;
-    private List<Address> adress;
+    private List<Address> addresses;
 }
