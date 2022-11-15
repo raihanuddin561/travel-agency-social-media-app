@@ -2,6 +2,7 @@ package com.spring.mongodbPractice.controller;
 
 import com.spring.mongodbPractice.collections.Person;
 import com.spring.mongodbPractice.service.PersonService;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -46,5 +47,9 @@ public class PersonController {
         Pageable pageable = PageRequest.of(page,size);
         return personService.search(name,minAge,maxAge,city,pageable);
 
+    }
+    @GetMapping("/oldestPerson")
+    public List<Document> getOldstPerson(){
+        return personService.getOldestPerson();
     }
 }
