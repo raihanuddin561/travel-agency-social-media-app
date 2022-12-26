@@ -12,4 +12,6 @@ public class MongodbPracticeApplication {
 		SpringApplication.run(MongodbPracticeApplication.class, args);
 	}
 
+
+
 }
