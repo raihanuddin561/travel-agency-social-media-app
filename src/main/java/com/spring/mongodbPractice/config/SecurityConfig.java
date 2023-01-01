@@ -1,5 +1,6 @@
 package com.spring.mongodbPractice.config;
 
+import com.spring.mongodbPractice.filter.CustomAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,6 +19,7 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         http
@@ -29,8 +31,8 @@ public class SecurityConfig {
                             .antMatchers(HttpMethod.POST, Constants.API_USER).permitAll()
                             .anyRequest().authenticated();
                 })
-               // .addFilter(new CustomAuthenticationFilter(authenticationManager))
-               // .addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilter(new CustomAuthenticationFilter(authenticationManager))
+                // .addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .headers()
                 .cacheControl();
         return http.build();
