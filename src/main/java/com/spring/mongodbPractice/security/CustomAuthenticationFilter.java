@@ -1,4 +1,4 @@
-package com.spring.mongodbPractice.filter;
+package com.spring.mongodbPractice.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spring.mongodbPractice.SpringApplicationContext;

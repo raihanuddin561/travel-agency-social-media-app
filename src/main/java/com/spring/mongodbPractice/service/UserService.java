@@ -7,4 +7,6 @@ public interface UserService {
     UserResponseModel registerUser(UserRequestModel userRequestModel) throws Exception;
 
     UserResponseModel getUserByEmail(String username);
+
+    UserResponseModel getUserById(String id);
 }

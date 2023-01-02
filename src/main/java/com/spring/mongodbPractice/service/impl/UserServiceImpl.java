@@ -46,6 +46,17 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return userResponseModel;
     }
 
+    @Override
+    public UserResponseModel getUserById(String id) {
+        User user = userRepository.findById(id).get();
+        if(user==null){
+            throw new UsernameNotFoundException("User not found by id: "+id);
+        }
+        ModelMapper modelMapper =new ModelMapper();
+        UserResponseModel userResponseModel= modelMapper.map(user,UserResponseModel.class);
+        return userResponseModel;
+    }
+
     private boolean isUserExist(String email) {
         User user = userRepository.findByEmail(email);
         if (user != null) return true;
