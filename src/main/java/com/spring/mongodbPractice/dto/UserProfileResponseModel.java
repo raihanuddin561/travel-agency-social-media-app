@@ -1,24 +1,22 @@
-package com.spring.mongodbPractice.collections;
+package com.spring.mongodbPractice.dto;
 
+import com.spring.mongodbPractice.collections.Education;
+import com.spring.mongodbPractice.collections.Experience;
+import com.spring.mongodbPractice.collections.Social;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 import java.util.List;
-
-@Document("Profile")
-@Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Profile {
-    @Id
+@Builder
+public class UserProfileResponseModel {
     private String id;
-    private User user;
+    private String userId;
     private String company;
     private String webSite;
     private String location;
@@ -29,4 +27,5 @@ public class Profile {
     private List<Education> educations;
     private Social social;
     private Date date = new Date();
+
 }
