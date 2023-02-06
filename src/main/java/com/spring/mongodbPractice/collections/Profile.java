@@ -9,8 +9,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 import java.util.List;
-
-@Document("Profile")
 @Builder
 @Data
 @NoArgsConstructor
@@ -18,7 +16,6 @@ import java.util.List;
 public class Profile {
     @Id
     private String id;
-    private User user;
     private String company;
     private String webSite;
     private String location;
