@@ -26,5 +26,6 @@ public class User {
     private String password;
     private String avatar;
     private Date date = new Date();
+    private Profile profile;
 
 }
