@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService, UserDetailsService {
@@ -77,6 +78,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if(experienceRequestModel!=null){
             Type listType = new TypeToken<List<Experience>>() {}.getType();
             List<Experience> experiences = modelMapper.map(experienceRequestModel,listType);
+            for(Experience experience:experiences){
+                experience.setId(UUID.randomUUID().toString());
+            }
             Profile profile= user.getProfile();
             if(profile==null) profile = new Profile();
             profile.setExperiences(experiences);
