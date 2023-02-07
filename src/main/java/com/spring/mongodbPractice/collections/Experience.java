@@ -11,6 +11,7 @@ import java.util.Date;
 @AllArgsConstructor
 @Builder
 public class Experience {
+    private String id;
     private String title;
     private String company;
     private String location;
