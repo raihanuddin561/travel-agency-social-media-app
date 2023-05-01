@@ -15,9 +15,4 @@ public class UserRequestModel {
     private String email;
     private String password;
     private String password2;
-    private Experience experience;
-    private Address address;
-    private Education education;
-    private Profile profile;
-    private Social social;
 }

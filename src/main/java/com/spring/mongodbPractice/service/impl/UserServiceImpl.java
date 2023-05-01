@@ -7,6 +7,8 @@ import com.spring.mongodbPractice.dto.ExperienceRequestModel;
 import com.spring.mongodbPractice.dto.UserProfileResponseModel;
 import com.spring.mongodbPractice.dto.UserRequestModel;
 import com.spring.mongodbPractice.dto.UserResponseModel;
+import com.spring.mongodbPractice.exceptions.ActionNotPermittedException;
+import com.spring.mongodbPractice.exceptions.ErrorMessages;
 import com.spring.mongodbPractice.repository.UserRepository;
 import com.spring.mongodbPractice.service.UserService;
 import org.modelmapper.ModelMapper;
@@ -19,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -57,13 +60,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public UserResponseModel getUserById(String id) {
         User user = userRepository.findById(id).get();
-        if(user==null){
-            throw new UsernameNotFoundException("User not found by id: "+id);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found by id: " + id);
         }
-        ModelMapper modelMapper =new ModelMapper();
-        UserResponseModel userResponseModel= modelMapper.map(user,UserResponseModel.class);
+        ModelMapper modelMapper = new ModelMapper();
+        UserResponseModel userResponseModel = modelMapper.map(user, UserResponseModel.class);
         return userResponseModel;
     }
+
     @Override
     public UserProfileResponseModel update(UserRequestModel userRequestModel, String id) {
         User user = userRepository.findById(id).get();
@@ -71,18 +75,22 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public UserProfileResponseModel saveExperience(List<ExperienceRequestModel> experienceRequestModel, String userId) {
+    public UserProfileResponseModel saveExperience(List<ExperienceRequestModel> experienceRequestModel,
+                                                   String userId) {
         User user = userRepository.findById(userId).get();
-        if(user==null) throw new UsernameNotFoundException("User not found by id: "+userId);
+        if (user == null) throw new UsernameNotFoundException("User not found by id: " + userId);
         ModelMapper modelMapper = new ModelMapper();
-        if(experienceRequestModel!=null){
-            Type listType = new TypeToken<List<Experience>>() {}.getType();
-            List<Experience> experiences = modelMapper.map(experienceRequestModel,listType);
-            for(Experience experience:experiences){
+        if (experienceRequestModel != null) {
+            Type listType = new TypeToken<List<Experience>>() {
+            }.getType();
+            List<Experience> experiences = modelMapper.map(experienceRequestModel, listType);
+            for (Experience experience : experiences) {
                 experience.setId(UUID.randomUUID().toString());
+                if (experience.getCurrent())
+                    experience.setCurrent(false);
             }
-            Profile profile= user.getProfile();
-            if(profile==null) profile = new Profile();
+            Profile profile = user.getProfile();
+            if (profile == null) profile = new Profile();
             profile.setExperiences(experiences);
             user.setProfile(profile);
         }
@@ -95,12 +103,100 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return userProfileResponseModel;
     }
 
+    /**
+     * method for update Experience
+     *
+     * @param experienceRequestModel
+     * @param userId
+     * @param expId
+     * @param principal
+     * @return UserProfileResponseModel
+     * @author raihan
+     */
+    @Override
+    public UserProfileResponseModel updateExperience(ExperienceRequestModel experienceRequestModel, String userId,
+                                                     String expId, Principal principal) {
+        User currentUser = userRepository.findByEmail(principal.getName());
+        if (!userId.equals(currentUser.getId())) {
+            throw new ActionNotPermittedException(ErrorMessages.NOT_PERMITTED_TO_UPDATE.getErrorMessage());
+        }
+        User savedUser = null;
+        ModelMapper modelMapper = new ModelMapper();
+        if (experienceRequestModel != null) {
+            Profile profile = currentUser.getProfile();
+            List<Experience> experiences = profile.getExperiences();
+            for (Experience experience : experiences) {
+                if (experience.getId().equals(expId)) {
+                    modelMapper.map(experienceRequestModel, experience);
+                }
+            }
+            profile.setExperiences(experiences);
+            currentUser.setProfile(profile);
+            savedUser = userRepository.save(currentUser);
+        }
+        UserProfileResponseModel userProfileResponseModel = UserProfileResponseModel.builder()
+                .userId(currentUser.getId())
+                .experiences(savedUser.getProfile().getExperiences())
+                .date(savedUser.getDate())
+                .build();
+        return userProfileResponseModel;
+    }
+
+    /**
+     * method for delete experience
+     *
+     * @param userId
+     * @param expId
+     * @param principal
+     * @return UserProfileResponseModel
+     * @author raihan
+     */
+    @Override
+    public UserProfileResponseModel deleteExperience(String userId, String expId, Principal principal) {
+        User currentUser = userRepository.findByEmail(principal.getName());
+        if (!userId.equals(currentUser.getId())) {
+            throw new ActionNotPermittedException(ErrorMessages.NOT_PERMITTED_TO_DELETE.getErrorMessage());
+        }
+        Profile profile = currentUser.getProfile();
+        List<Experience> experiences = profile.getExperiences();
+        List<Experience> experienceList = new ArrayList<>();
+        for (Experience experience : experiences) {
+            if (!experience.getId().equals(expId)) {
+                experienceList.add(experience);
+            }
+        }
+        profile.setExperiences(experienceList);
+        currentUser.setProfile(profile);
+        User savedUser = userRepository.save(currentUser);
+        UserProfileResponseModel userProfileResponseModel = UserProfileResponseModel.builder()
+                .userId(currentUser.getId())
+                .experiences(savedUser.getProfile().getExperiences())
+                .date(savedUser.getDate())
+                .build();
+        return userProfileResponseModel;
+    }
+
+    /**
+     * method for checking existing user
+     *
+     * @param email
+     * @return boolean
+     * @author raihan
+     */
     private boolean isUserExist(String email) {
         User user = userRepository.findByEmail(email);
         if (user != null) return true;
         return false;
     }
 
+    /**
+     * method for load username by email
+     *
+     * @param username
+     * @return UserDetails
+     * @throws UsernameNotFoundException
+     * @author raihan
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(username);
