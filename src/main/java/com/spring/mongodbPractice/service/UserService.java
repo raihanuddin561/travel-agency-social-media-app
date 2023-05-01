@@ -5,6 +5,7 @@ import com.spring.mongodbPractice.dto.UserProfileResponseModel;
 import com.spring.mongodbPractice.dto.UserRequestModel;
 import com.spring.mongodbPractice.dto.UserResponseModel;
 
+import java.security.Principal;
 import java.util.List;
 
 public interface UserService {
@@ -17,4 +18,27 @@ public interface UserService {
     UserProfileResponseModel update(UserRequestModel userRequestModel, String id);
 
     UserProfileResponseModel saveExperience(List<ExperienceRequestModel> experienceRequestModel, String userId);
+
+    /**
+     * method for update Experience
+     *
+     * @param experienceRequestModel
+     * @param userId
+     * @param expId
+     * @param principal
+     * @return UserProfileResponseModel
+     * @author raihan
+     */
+    UserProfileResponseModel updateExperience(ExperienceRequestModel experienceRequestModel, String userId, String expId, Principal principal);
+
+    /**
+     * method for delete experience
+     *
+     * @param userId
+     * @param expId
+     * @param principal
+     * @return UserProfileResponseModel
+     * @author raihan
+     */
+    UserProfileResponseModel deleteExperience(String userId, String expId, Principal principal);
 }

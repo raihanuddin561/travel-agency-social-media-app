@@ -1,42 +1,98 @@
 package com.spring.mongodbPractice.controller;
 
-import com.spring.mongodbPractice.collections.User;
 import com.spring.mongodbPractice.dto.ExperienceRequestModel;
 import com.spring.mongodbPractice.dto.UserProfileResponseModel;
 import com.spring.mongodbPractice.dto.UserRequestModel;
 import com.spring.mongodbPractice.dto.UserResponseModel;
 import com.spring.mongodbPractice.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.mapping.Document;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
 
+/**
+ * this is user api controller
+ *
+ * @author raihan
+ */
 @RestController
 @RequestMapping("/api/user")
+@RequiredArgsConstructor
 public class UserController {
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    /**
+     * api for user registration
+     *
+     * @param userRequestModel
+     * @return
+     * @throws Exception
+     * @author raihan
+     */
     @PostMapping
     public UserResponseModel registerUser(@RequestBody UserRequestModel userRequestModel) throws Exception {
         return userService.registerUser(userRequestModel);
     }
+
+    /**
+     * api for getting user info by id
+     *
+     * @param id
+     * @return UserResponseModel
+     * @author raihan
+     */
     @GetMapping("/{id}")
-    public UserResponseModel getUser(@PathVariable String id){
-        return userService.getUserById(id);
+    public ResponseEntity<UserResponseModel> getUser(@PathVariable String id) {
+        return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
     }
 
-    @PutMapping("/update/{id}")
-    public UserProfileResponseModel userUpdated(@RequestBody UserRequestModel userRequestModel,@PathVariable String id){
-        UserProfileResponseModel userProfileResponseModel = userService.update(userRequestModel,id);
-        return userProfileResponseModel;
-    }
-
+    /**
+     * api for saving experiences
+     *
+     * @param experienceRequestModel
+     * @param userId
+     * @return UserProfileResponseModel
+     * @author raihan
+     */
     @PostMapping("/{userId}/profile/experience/save")
-    public UserProfileResponseModel saveExperience(@RequestBody List<ExperienceRequestModel> experienceRequestModel, @PathVariable String userId){
-        UserProfileResponseModel userProfileResponseModel = userService.saveExperience(experienceRequestModel,userId);
-        return userProfileResponseModel;
+    public ResponseEntity<UserProfileResponseModel> saveExperience(@RequestBody List<ExperienceRequestModel> experienceRequestModel, @PathVariable String userId) {
+        UserProfileResponseModel userProfileResponseModel = userService.saveExperience(experienceRequestModel, userId);
+        return new ResponseEntity<>(userProfileResponseModel, HttpStatus.CREATED);
     }
 
+    /**
+     * this api is for update specific user experience by userId and exp id
+     *
+     * @param experienceRequestModel
+     * @param userId
+     * @param expId
+     * @param principal
+     * @return UserProfileResponseMode
+     * @author raihan
+     */
+    @PutMapping("/{userId}/profile/experience/{expId}")
+    public ResponseEntity<UserProfileResponseModel> updateExperience(@RequestBody ExperienceRequestModel experienceRequestModel, @PathVariable String userId,
+                                                                     @PathVariable String expId, Principal principal) {
+        UserProfileResponseModel userProfileResponseModel = userService.updateExperience(experienceRequestModel, userId, expId, principal);
+        return new ResponseEntity<>(userProfileResponseModel, HttpStatus.OK);
+    }
+
+    /**
+     * api for deleteExperience
+     *
+     * @param userId
+     * @param expId
+     * @param principal
+     * @return UserProfileResponseModel
+     * @author raihan
+     */
+    @DeleteMapping("/{userId}/profile/experience/{expId}")
+    public ResponseEntity<UserProfileResponseModel> deleteExperience(@PathVariable String userId,
+                                                                     @PathVariable String expId, Principal principal) {
+        UserProfileResponseModel userProfileResponseModel = userService.deleteExperience(userId, expId, principal);
+        return new ResponseEntity<>(userProfileResponseModel, HttpStatus.OK);
+    }
 }
