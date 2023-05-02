@@ -1,4 +1,4 @@
-package com.spring.mongodbPractice.collections;
+package com.spring.mongodbPractice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,8 +11,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Education {
-    private String id;
+public class EducationRequestModel {
     private String school;
     private String degree;
     private String fieldOfStudy;

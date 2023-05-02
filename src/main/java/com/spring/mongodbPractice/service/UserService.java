@@ -1,9 +1,6 @@
 package com.spring.mongodbPractice.service;
 
-import com.spring.mongodbPractice.dto.ExperienceRequestModel;
-import com.spring.mongodbPractice.dto.UserProfileResponseModel;
-import com.spring.mongodbPractice.dto.UserRequestModel;
-import com.spring.mongodbPractice.dto.UserResponseModel;
+import com.spring.mongodbPractice.dto.*;
 
 import java.security.Principal;
 import java.util.List;
@@ -41,4 +38,6 @@ public interface UserService {
      * @author raihan
      */
     UserProfileResponseModel deleteExperience(String userId, String expId, Principal principal);
+
+    UserProfileResponseModel saveEducation(List<EducationRequestModel> educationRequestModels, String userId, Principal principal);
 }

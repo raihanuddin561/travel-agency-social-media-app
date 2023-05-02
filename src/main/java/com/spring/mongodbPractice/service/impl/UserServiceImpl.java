@@ -1,12 +1,10 @@
 package com.spring.mongodbPractice.service.impl;
 
+import com.spring.mongodbPractice.collections.Education;
 import com.spring.mongodbPractice.collections.Experience;
 import com.spring.mongodbPractice.collections.Profile;
 import com.spring.mongodbPractice.collections.User;
-import com.spring.mongodbPractice.dto.ExperienceRequestModel;
-import com.spring.mongodbPractice.dto.UserProfileResponseModel;
-import com.spring.mongodbPractice.dto.UserRequestModel;
-import com.spring.mongodbPractice.dto.UserResponseModel;
+import com.spring.mongodbPractice.dto.*;
 import com.spring.mongodbPractice.exceptions.ActionNotPermittedException;
 import com.spring.mongodbPractice.exceptions.ErrorMessages;
 import com.spring.mongodbPractice.repository.UserRepository;
@@ -172,6 +170,39 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                 .userId(currentUser.getId())
                 .experiences(savedUser.getProfile().getExperiences())
                 .date(savedUser.getDate())
+                .build();
+        return userProfileResponseModel;
+    }
+
+    @Override
+    public UserProfileResponseModel saveEducation(List<EducationRequestModel> educationRequestModels, String userId, Principal principal) {
+        User currentUser = userRepository.findByEmail(principal.getName());
+        if(!currentUser.getId().equals(userId))
+            throw new ActionNotPermittedException(ErrorMessages.NOT_PERMITTED_TO_SAVE.getErrorMessage());
+        ModelMapper modelMapper = new ModelMapper();
+        if (educationRequestModels != null && !educationRequestModels.isEmpty()) {
+            Type listType = new TypeToken<List<Education>>() {
+            }.getType();
+            List<Education> educations = modelMapper.map(educationRequestModels, listType);
+            for (Education experience : educations) {
+                experience.setId(UUID.randomUUID().toString());
+            }
+            Profile profile = currentUser.getProfile();
+            if (profile == null) profile = new Profile();
+            List<Education> currentEducation = profile.getEducations();
+            if(currentEducation!=null && !currentEducation.isEmpty()){
+                currentEducation.addAll(educations);
+                profile.setEducations(currentEducation);
+            }else{
+                profile.setEducations(educations);
+            }
+            currentUser.setProfile(profile);
+            currentUser = userRepository.save(currentUser);
+        }
+        UserProfileResponseModel userProfileResponseModel = UserProfileResponseModel.builder()
+                .userId(currentUser.getId())
+                .educations(currentUser.getProfile().getEducations())
+                .date(currentUser.getDate())
                 .build();
         return userProfileResponseModel;
     }
