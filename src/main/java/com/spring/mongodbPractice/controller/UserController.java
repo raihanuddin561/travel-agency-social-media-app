@@ -1,9 +1,6 @@
 package com.spring.mongodbPractice.controller;
 
-import com.spring.mongodbPractice.dto.ExperienceRequestModel;
-import com.spring.mongodbPractice.dto.UserProfileResponseModel;
-import com.spring.mongodbPractice.dto.UserRequestModel;
-import com.spring.mongodbPractice.dto.UserResponseModel;
+import com.spring.mongodbPractice.dto.*;
 import com.spring.mongodbPractice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -91,6 +88,26 @@ public class UserController {
      */
     @DeleteMapping("/{userId}/profile/experience/{expId}")
     public ResponseEntity<UserProfileResponseModel> deleteExperience(@PathVariable String userId,
+                                                                     @PathVariable String expId, Principal principal) {
+        UserProfileResponseModel userProfileResponseModel = userService.deleteExperience(userId, expId, principal);
+        return new ResponseEntity<>(userProfileResponseModel, HttpStatus.OK);
+    }
+
+    @PostMapping("/{userId}/profile/education/save")
+    public ResponseEntity<UserProfileResponseModel> saveEducation(@RequestBody List<EducationRequestModel> educationRequestModels,
+                                                                  @PathVariable String userId, Principal principal) {
+        UserProfileResponseModel userProfileResponseModel = userService.saveEducation(educationRequestModels, userId,principal);
+        return new ResponseEntity<>(userProfileResponseModel, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{userId}/profile/education/{expId}")
+    public ResponseEntity<UserProfileResponseModel> updateEducation(@RequestBody ExperienceRequestModel experienceRequestModel, @PathVariable String userId,
+                                                                     @PathVariable String expId, Principal principal) {
+        UserProfileResponseModel userProfileResponseModel = userService.updateExperience(experienceRequestModel, userId, expId, principal);
+        return new ResponseEntity<>(userProfileResponseModel, HttpStatus.OK);
+    }
+    @DeleteMapping("/{userId}/profile/education/{expId}")
+    public ResponseEntity<UserProfileResponseModel> deleteEducation(@PathVariable String userId,
                                                                      @PathVariable String expId, Principal principal) {
         UserProfileResponseModel userProfileResponseModel = userService.deleteExperience(userId, expId, principal);
         return new ResponseEntity<>(userProfileResponseModel, HttpStatus.OK);

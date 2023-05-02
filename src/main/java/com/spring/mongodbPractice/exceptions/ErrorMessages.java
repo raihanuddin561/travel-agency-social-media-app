@@ -15,7 +15,8 @@ public enum ErrorMessages {
     COULD_NOT_DELETE_RECORD("Could not delete record"),
     EMAIL_ADDRESS_NOT_VARIFIED("Email address could not be verified"),
     NOT_PERMITTED_TO_UPDATE("Not permitted to update!"),
-    NOT_PERMITTED_TO_DELETE("Not permitted to delete!");
+    NOT_PERMITTED_TO_DELETE("Not permitted to delete!"),
+    NOT_PERMITTED_TO_SAVE("Not permitted to save!");
     private String errorMessage;
 
     public String getErrorMessage() {
