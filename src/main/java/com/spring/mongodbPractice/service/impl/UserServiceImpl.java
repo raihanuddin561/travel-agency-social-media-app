@@ -89,7 +89,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             }
             Profile profile = user.getProfile();
             if (profile == null) profile = new Profile();
-            profile.setExperiences(experiences);
+            List<Experience> currentExperiences = profile.getExperiences();
+            if(currentExperiences !=null && currentExperiences.isEmpty()){
+                currentExperiences.addAll(experiences);
+                profile.setExperiences(currentExperiences);
+            }else{
+                profile.setExperiences(experiences);
+            }
             user.setProfile(profile);
         }
         User savedUser = userRepository.save(user);
