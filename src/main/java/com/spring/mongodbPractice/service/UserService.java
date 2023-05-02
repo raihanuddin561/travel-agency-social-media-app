@@ -40,4 +40,8 @@ public interface UserService {
     UserProfileResponseModel deleteExperience(String userId, String expId, Principal principal);
 
     UserProfileResponseModel saveEducation(List<EducationRequestModel> educationRequestModels, String userId, Principal principal);
+
+    UserProfileResponseModel updateEducation(EducationRequestModel educationRequestModel, String userId, String expId, Principal principal);
+
+    UserProfileResponseModel deleteEducation(String userId, String eduId, Principal principal);
 }
