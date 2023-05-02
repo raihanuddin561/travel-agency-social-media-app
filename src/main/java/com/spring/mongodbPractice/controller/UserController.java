@@ -101,15 +101,15 @@ public class UserController {
     }
 
     @PutMapping("/{userId}/profile/education/{expId}")
-    public ResponseEntity<UserProfileResponseModel> updateEducation(@RequestBody ExperienceRequestModel experienceRequestModel, @PathVariable String userId,
+    public ResponseEntity<UserProfileResponseModel> updateEducation(@RequestBody EducationRequestModel educationRequestModel, @PathVariable String userId,
                                                                      @PathVariable String expId, Principal principal) {
-        UserProfileResponseModel userProfileResponseModel = userService.updateExperience(experienceRequestModel, userId, expId, principal);
+        UserProfileResponseModel userProfileResponseModel = userService.updateEducation(educationRequestModel, userId, expId, principal);
         return new ResponseEntity<>(userProfileResponseModel, HttpStatus.OK);
     }
-    @DeleteMapping("/{userId}/profile/education/{expId}")
+    @DeleteMapping("/{userId}/profile/education/{eduId}")
     public ResponseEntity<UserProfileResponseModel> deleteEducation(@PathVariable String userId,
-                                                                     @PathVariable String expId, Principal principal) {
-        UserProfileResponseModel userProfileResponseModel = userService.deleteExperience(userId, expId, principal);
+                                                                     @PathVariable String eduId, Principal principal) {
+        UserProfileResponseModel userProfileResponseModel = userService.deleteEducation(userId, eduId, principal);
         return new ResponseEntity<>(userProfileResponseModel, HttpStatus.OK);
     }
 }

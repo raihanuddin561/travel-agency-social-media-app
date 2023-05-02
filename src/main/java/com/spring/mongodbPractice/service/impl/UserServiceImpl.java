@@ -180,6 +180,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return userProfileResponseModel;
     }
 
+    /**
+     * method for save education
+     * @param educationRequestModels
+     * @param userId
+     * @param principal
+     * @return UserProfileResponseModel
+     * @author raihan
+     */
     @Override
     public UserProfileResponseModel saveEducation(List<EducationRequestModel> educationRequestModels, String userId, Principal principal) {
         User currentUser = userRepository.findByEmail(principal.getName());
@@ -209,6 +217,74 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                 .userId(currentUser.getId())
                 .educations(currentUser.getProfile().getEducations())
                 .date(currentUser.getDate())
+                .build();
+        return userProfileResponseModel;
+    }
+
+    /**
+     * method for update education
+     * @param educationRequestModel
+     * @param userId
+     * @param expId
+     * @param principal
+     * @return UserProfileResponseModel
+     */
+    @Override
+    public UserProfileResponseModel updateEducation(EducationRequestModel educationRequestModel, String userId, String expId, Principal principal) {
+        User currentUser = userRepository.findByEmail(principal.getName());
+        if (!userId.equals(currentUser.getId())) {
+            throw new ActionNotPermittedException(ErrorMessages.NOT_PERMITTED_TO_UPDATE.getErrorMessage());
+        }
+        ModelMapper modelMapper = new ModelMapper();
+        if (educationRequestModel != null) {
+            Profile profile = currentUser.getProfile();
+            List<Education> educations = profile.getEducations();
+            for (Education education : educations) {
+                if (education.getId().equals(expId)) {
+                    modelMapper.map(educationRequestModel, education);
+                }
+            }
+            profile.setEducations(educations);
+            currentUser.setProfile(profile);
+            currentUser = userRepository.save(currentUser);
+        }
+        UserProfileResponseModel userProfileResponseModel = UserProfileResponseModel.builder()
+                .userId(currentUser.getId())
+                .educations(currentUser.getProfile().getEducations())
+                .date(currentUser.getDate())
+                .build();
+        return userProfileResponseModel;
+    }
+
+    /**
+     * method for delete education
+     * @param userId
+     * @param eduId
+     * @param principal
+     * @return UserProfileResponseModel
+     * @author raihan
+     */
+    @Override
+    public UserProfileResponseModel deleteEducation(String userId, String eduId, Principal principal) {
+        User currentUser = userRepository.findByEmail(principal.getName());
+        if (!userId.equals(currentUser.getId())) {
+            throw new ActionNotPermittedException(ErrorMessages.NOT_PERMITTED_TO_DELETE.getErrorMessage());
+        }
+        Profile profile = currentUser.getProfile();
+        List<Education> educations = profile.getEducations();
+        List<Education> educationList = new ArrayList<>();
+        for (Education education : educations) {
+            if (!education.getId().equals(eduId)) {
+                educationList.add(education);
+            }
+        }
+        profile.setEducations(educationList);
+        currentUser.setProfile(profile);
+        User savedUser = userRepository.save(currentUser);
+        UserProfileResponseModel userProfileResponseModel = UserProfileResponseModel.builder()
+                .userId(currentUser.getId())
+                .educations(savedUser.getProfile().getEducations())
+                .date(savedUser.getDate())
                 .build();
         return userProfileResponseModel;
     }
