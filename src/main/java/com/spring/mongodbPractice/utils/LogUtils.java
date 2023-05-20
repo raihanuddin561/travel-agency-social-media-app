@@ -24,6 +24,16 @@ public class LogUtils {
     }
 
     /**
+     * printing info log
+     * @param message
+     * @param path
+     * @author raihan
+     */
+    public void printLog(String message, String path){
+        log.info("info: {}",message);
+        log.info("Path: {}",path);
+    }
+    /**
      * printing log with user
      *
      * @param message

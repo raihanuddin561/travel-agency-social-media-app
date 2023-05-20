@@ -5,6 +5,8 @@ import com.spring.mongodbPractice.SpringApplicationContext;
 import com.spring.mongodbPractice.config.Constants;
 import com.spring.mongodbPractice.dto.UserResponseModel;
 import com.spring.mongodbPractice.service.UserService;
+import com.spring.mongodbPractice.utils.JwtUtils;
+import com.spring.mongodbPractice.utils.LogUtils;
 import com.spring.mongodbPractice.utils.Util;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.servlet.FilterChain;
@@ -27,7 +31,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
-
+    private final JwtUtils jwtUtils;
+    private final UserDetailsService userDetailsService;
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         String username = null;
@@ -43,11 +48,12 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
             throw new RuntimeException(e);
         } catch (AuthenticationException e) {
             catchActionForAuthenticationException(response, e, HttpServletResponse.SC_BAD_REQUEST);
-            throw new RuntimeException(String.format("Error in attemptAuthentication with username: %s", username));
+            //throw new RuntimeException(String.format("Error in attemptAuthentication with username: %s", username));
         } catch (Exception e) {
             catchActionForAuthenticationException(response, e, HttpServletResponse.SC_BAD_REQUEST);
-            throw new RuntimeException(String.format("Error in attemptAuthentication with username: %s", username));
+           // throw new RuntimeException(String.format("Error in attemptAuthentication with username: %s", username));
         }
+        return null;
     }
 
     private void catchActionForAuthenticationException(HttpServletResponse response,
@@ -66,7 +72,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         String username = ((User) authResult.getPrincipal()).getUsername();
-        String token = Util.getToken(username);
+        String token = jwtUtils.generateToken(userDetailsService.loadUserByUsername(username));
         UserService userService = (UserService) SpringApplicationContext.getBean("userServiceImpl");
         UserResponseModel user = userService.getUserByEmail(username);
         response.setHeader(Constants.AUTHORIZATION_HEADER, Constants.BEARER + token);
@@ -81,5 +87,6 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         errorMessage.put("errorMessage", "Bad credentials");
         response.setContentType("application/json");
         new ObjectMapper().writeValue(response.getOutputStream(), errorMessage);
+
     }
 }

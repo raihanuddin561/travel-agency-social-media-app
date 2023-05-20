@@ -14,5 +14,4 @@ import java.util.Date;
 public class ErrorMessage {
     private Date timeStamp;
     private String message;
-    private String path;
 }
