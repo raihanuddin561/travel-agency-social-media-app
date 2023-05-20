@@ -14,6 +14,8 @@ public enum ErrorMessages {
     COULD_NOT_UPDATE_RECORD("Could not update record"),
     COULD_NOT_DELETE_RECORD("Could not delete record"),
     EMAIL_ADDRESS_NOT_VARIFIED("Email address could not be verified"),
+    TOKEN_IS_EXPIRED("Token is expired!"),
+    TOKEN_IS_NOT_VALID("Token is not valid"),
     NOT_PERMITTED_TO_UPDATE("Not permitted to update!"),
     NOT_PERMITTED_TO_DELETE("Not permitted to delete!"),
     NOT_PERMITTED_TO_SAVE("Not permitted to save!");

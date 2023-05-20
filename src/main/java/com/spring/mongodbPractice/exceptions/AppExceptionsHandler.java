@@ -1,6 +1,7 @@
 package com.spring.mongodbPractice.exceptions;
 
 import com.spring.mongodbPractice.utils.LogUtils;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -31,14 +32,12 @@ public class AppExceptionsHandler {
      *
      * @param date
      * @param message
-     * @param path
      * @author raihan
      */
-    public void setErrorMessge(Date date, String message, String path) {
+    public void setErrorMessge(Date date, String message) {
         errorMessage = ErrorMessage.builder()
                 .timeStamp(date)
                 .message(message)
-                .path(path)
                 .build();
     }
 
@@ -54,7 +53,7 @@ public class AppExceptionsHandler {
     public ResponseEntity<ErrorMessage> handleUserServiceException(Exception ex, HttpServletRequest request) {
         String message = ex.getMessage();
         String path = request.getRequestURI();
-        setErrorMessge(new Date(), message, path);
+        setErrorMessge(new Date(), message);
         logUtils.printErrorLog(message, path);
         return new ResponseEntity<>(errorMessage, new HttpHeaders(), HttpStatus.BAD_REQUEST);
     }
@@ -71,11 +70,19 @@ public class AppExceptionsHandler {
     public ResponseEntity<ErrorMessage> handleActionNotPermitException(ActionNotPermittedException ex, HttpServletRequest request) {
         String message = ex.getMessage();
         String path = request.getRequestURI();
-        setErrorMessge(new Date(), message, path);
+        setErrorMessge(new Date(), message);
         logUtils.printErrorLog(message, path, request.getUserPrincipal().getName());
         return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(value = {ExpiredJwtException.class,TokenInvalidException.class})
+    public ResponseEntity<ErrorMessage> handleTokenInvalidException(RuntimeException ex, HttpServletRequest request){
+        String message = ex.getMessage();
+        String path = request.getRequestURI();
+        setErrorMessge(new Date(),message);
+        logUtils.printErrorLog(message,path,request.getUserPrincipal().getName());
+        return new ResponseEntity<>(errorMessage,HttpStatus.BAD_REQUEST);
+    }
     /**
      * Handler for Exception
      *
@@ -88,8 +95,10 @@ public class AppExceptionsHandler {
     public ResponseEntity<Object> handleException(Exception ex, HttpServletRequest request) {
         String message = ex.getMessage();
         String path = request.getRequestURI();
-        setErrorMessge(new Date(), message, path);
+        setErrorMessge(new Date(), message);
         logUtils.printErrorLog(message, path);
         return new ResponseEntity<>(errorMessage, new HttpHeaders(), HttpStatus.BAD_REQUEST);
     }
+
+
 }

@@ -9,13 +9,4 @@ import java.util.Date;
 
 @Component
 public class Util {
-
-    public static String getToken(String username) {
-        String token = Jwts.builder()
-                .setSubject(username)
-                .setExpiration(new Date(System.currentTimeMillis() + Constants.EXIPIRATION_TIME))
-                .signWith(SignatureAlgorithm.HS512, Constants.SECURITY_KEY)
-                .compact();
-        return token;
-    }
 }
