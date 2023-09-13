@@ -11,8 +11,8 @@
 	<groupId>com.spring</groupId>
 	<artifactId>mongodbPractice</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>mongodbPractice</name>
-	<description>Demo project for Spring Boot</description>
+	<name>travel-agency-social-media</name>
+	<description>Social app for travel agency by Spring Boot</description>
 	<properties>
 		<java.version>11</java.version>
 	</properties>
