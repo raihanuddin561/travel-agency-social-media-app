@@ -1,17 +1,17 @@
 package com.spring.mongodbPractice.service.impl;
 
-import com.spring.mongodbPractice.collections.Education;
-import com.spring.mongodbPractice.collections.Experience;
-import com.spring.mongodbPractice.collections.Profile;
-import com.spring.mongodbPractice.collections.User;
+import com.spring.mongodbPractice.collections.*;
 import com.spring.mongodbPractice.dto.*;
 import com.spring.mongodbPractice.exceptions.ActionNotPermittedException;
 import com.spring.mongodbPractice.exceptions.ErrorMessages;
+import com.spring.mongodbPractice.repository.RoleRepository;
 import com.spring.mongodbPractice.repository.UserRepository;
 import com.spring.mongodbPractice.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,15 +22,28 @@ import java.lang.reflect.Type;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
+/**
+ * User service implementation
+ *
+ * @author raihan
+ */
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService, UserDetailsService {
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
 
+    /**
+     * register user method
+     *
+     * @param userRequestModel request body for user info
+     * @return UserResponseModel
+     * @throws Exception can be occurred exception
+     */
     @Override
     public UserResponseModel registerUser(UserRequestModel userRequestModel) throws Exception {
         if (!userRequestModel.getPassword().equals(userRequestModel.getPassword2()))
@@ -41,29 +54,43 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         ModelMapper modelMapper = new ModelMapper();
         User user = modelMapper.map(userRequestModel, User.class);
         user.setPassword(passwordEncoder.encode(userRequestModel.getPassword()));
+        Role role = roleRepository.findByRole(RoleEnum.ROLE_USER.name()).orElse(null);
+        if (role == null) {
+            role = roleRepository.save(Role.builder()
+                    .role(RoleEnum.ROLE_USER.name())
+                    .build());
+        }
+        user.setRole(Set.of(role));
         User storedUser = userRepository.save(user);
-        UserResponseModel userResponseModel = modelMapper.map(storedUser, UserResponseModel.class);
-        return userResponseModel;
+        return modelMapper.map(storedUser, UserResponseModel.class);
     }
 
+    /**
+     * get user by email method
+     *
+     * @param username is for getting user info
+     * @return UserResponseModel
+     */
     @Override
     public UserResponseModel getUserByEmail(String username) {
         User user = userRepository.findByEmail(username);
         if (user == null) throw new UsernameNotFoundException("User not found by " + username);
         ModelMapper modelMapper = new ModelMapper();
-        UserResponseModel userResponseModel = modelMapper.map(user, UserResponseModel.class);
-        return userResponseModel;
+        return modelMapper.map(user, UserResponseModel.class);
     }
 
+    /**
+     * get user by id
+     *
+     * @param id is for user id
+     * @return UserResponseModel
+     */
     @Override
     public UserResponseModel getUserById(String id) {
-        User user = userRepository.findById(id).get();
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found by id: " + id);
-        }
+        User user = userRepository.findById(id).orElseThrow(() ->
+                new UsernameNotFoundException("User not found by id: " + id));
         ModelMapper modelMapper = new ModelMapper();
-        UserResponseModel userResponseModel = modelMapper.map(user, UserResponseModel.class);
-        return userResponseModel;
+        return modelMapper.map(user, UserResponseModel.class);
     }
 
     @Override
@@ -72,11 +99,18 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return null;
     }
 
+    /**
+     * save user experience
+     *
+     * @param experienceRequestModel request body for experience
+     * @param userId                 specific user id
+     * @return UserProfileResponseModel
+     */
     @Override
     public UserProfileResponseModel saveExperience(List<ExperienceRequestModel> experienceRequestModel,
                                                    String userId) {
-        User user = userRepository.findById(userId).get();
-        if (user == null) throw new UsernameNotFoundException("User not found by id: " + userId);
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new UsernameNotFoundException("User not found by id: " + userId));
         ModelMapper modelMapper = new ModelMapper();
         if (experienceRequestModel != null) {
             Type listType = new TypeToken<List<Experience>>() {
@@ -90,32 +124,30 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             Profile profile = user.getProfile();
             if (profile == null) profile = new Profile();
             List<Experience> currentExperiences = profile.getExperiences();
-            if(currentExperiences !=null && currentExperiences.isEmpty()){
+            if (currentExperiences != null && currentExperiences.isEmpty()) {
                 currentExperiences.addAll(experiences);
                 profile.setExperiences(currentExperiences);
-            }else{
+            } else {
                 profile.setExperiences(experiences);
             }
             user.setProfile(profile);
         }
         User savedUser = userRepository.save(user);
-        UserProfileResponseModel userProfileResponseModel = UserProfileResponseModel.builder()
+        return UserProfileResponseModel.builder()
                 .userId(user.getId())
                 .experiences(savedUser.getProfile().getExperiences())
                 .date(user.getDate())
                 .build();
-        return userProfileResponseModel;
     }
 
     /**
      * method for update Experience
      *
-     * @param experienceRequestModel
-     * @param userId
-     * @param expId
-     * @param principal
+     * @param experienceRequestModel request body for experience
+     * @param userId                 user id
+     * @param expId                  experience id
+     * @param principal              to check logged-in user info
      * @return UserProfileResponseModel
-     * @author raihan
      */
     @Override
     public UserProfileResponseModel updateExperience(ExperienceRequestModel experienceRequestModel, String userId,
@@ -138,22 +170,20 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             currentUser.setProfile(profile);
             savedUser = userRepository.save(currentUser);
         }
-        UserProfileResponseModel userProfileResponseModel = UserProfileResponseModel.builder()
+        return UserProfileResponseModel.builder()
                 .userId(currentUser.getId())
                 .experiences(savedUser.getProfile().getExperiences())
                 .date(savedUser.getDate())
                 .build();
-        return userProfileResponseModel;
     }
 
     /**
      * method for delete experience
      *
-     * @param userId
-     * @param expId
-     * @param principal
+     * @param userId    user id
+     * @param expId     experience id
+     * @param principal to check logged-in user info
      * @return UserProfileResponseModel
-     * @author raihan
      */
     @Override
     public UserProfileResponseModel deleteExperience(String userId, String expId, Principal principal) {
@@ -172,26 +202,25 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         profile.setExperiences(experienceList);
         currentUser.setProfile(profile);
         User savedUser = userRepository.save(currentUser);
-        UserProfileResponseModel userProfileResponseModel = UserProfileResponseModel.builder()
+        return UserProfileResponseModel.builder()
                 .userId(currentUser.getId())
                 .experiences(savedUser.getProfile().getExperiences())
                 .date(savedUser.getDate())
                 .build();
-        return userProfileResponseModel;
     }
 
     /**
      * method for save education
-     * @param educationRequestModels
-     * @param userId
-     * @param principal
+     *
+     * @param educationRequestModels request body for education
+     * @param userId                 user id
+     * @param principal              to check logged-in user info
      * @return UserProfileResponseModel
-     * @author raihan
      */
     @Override
     public UserProfileResponseModel saveEducation(List<EducationRequestModel> educationRequestModels, String userId, Principal principal) {
         User currentUser = userRepository.findByEmail(principal.getName());
-        if(!currentUser.getId().equals(userId))
+        if (!currentUser.getId().equals(userId))
             throw new ActionNotPermittedException(ErrorMessages.NOT_PERMITTED_TO_SAVE.getErrorMessage());
         ModelMapper modelMapper = new ModelMapper();
         if (educationRequestModels != null && !educationRequestModels.isEmpty()) {
@@ -204,29 +233,29 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             Profile profile = currentUser.getProfile();
             if (profile == null) profile = new Profile();
             List<Education> currentEducation = profile.getEducations();
-            if(currentEducation!=null && !currentEducation.isEmpty()){
+            if (currentEducation != null && !currentEducation.isEmpty()) {
                 currentEducation.addAll(educations);
                 profile.setEducations(currentEducation);
-            }else{
+            } else {
                 profile.setEducations(educations);
             }
             currentUser.setProfile(profile);
             currentUser = userRepository.save(currentUser);
         }
-        UserProfileResponseModel userProfileResponseModel = UserProfileResponseModel.builder()
+        return UserProfileResponseModel.builder()
                 .userId(currentUser.getId())
                 .educations(currentUser.getProfile().getEducations())
                 .date(currentUser.getDate())
                 .build();
-        return userProfileResponseModel;
     }
 
     /**
      * method for update education
-     * @param educationRequestModel
-     * @param userId
-     * @param expId
-     * @param principal
+     *
+     * @param educationRequestModel request body for education
+     * @param userId                user id
+     * @param expId                 experience id
+     * @param principal             to check logged-in user info
      * @return UserProfileResponseModel
      */
     @Override
@@ -248,21 +277,20 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             currentUser.setProfile(profile);
             currentUser = userRepository.save(currentUser);
         }
-        UserProfileResponseModel userProfileResponseModel = UserProfileResponseModel.builder()
+        return UserProfileResponseModel.builder()
                 .userId(currentUser.getId())
                 .educations(currentUser.getProfile().getEducations())
                 .date(currentUser.getDate())
                 .build();
-        return userProfileResponseModel;
     }
 
     /**
      * method for delete education
-     * @param userId
-     * @param eduId
-     * @param principal
+     *
+     * @param userId    user id
+     * @param eduId     education id
+     * @param principal to check logged-in user info
      * @return UserProfileResponseModel
-     * @author raihan
      */
     @Override
     public UserProfileResponseModel deleteEducation(String userId, String eduId, Principal principal) {
@@ -281,20 +309,18 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         profile.setEducations(educationList);
         currentUser.setProfile(profile);
         User savedUser = userRepository.save(currentUser);
-        UserProfileResponseModel userProfileResponseModel = UserProfileResponseModel.builder()
+        return UserProfileResponseModel.builder()
                 .userId(currentUser.getId())
                 .educations(savedUser.getProfile().getEducations())
                 .date(savedUser.getDate())
                 .build();
-        return userProfileResponseModel;
     }
 
     /**
      * method for checking existing user
      *
-     * @param email
+     * @param email to check existing user
      * @return boolean
-     * @author raihan
      */
     private boolean isUserExist(String email) {
         User user = userRepository.findByEmail(email);
@@ -305,10 +331,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     /**
      * method for load username by email
      *
-     * @param username
+     * @param username to load user by this name or email
      * @return UserDetails
-     * @throws UsernameNotFoundException
-     * @author raihan
+     * @throws UsernameNotFoundException can be occurred exception
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -316,6 +341,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("Username not found for " + username);
         }
-        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), new ArrayList<>());
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        for (Role role : user.getRole())
+            authorities.add(new SimpleGrantedAuthority(role == null ? null : role.getRole()));
+        return new org.springframework.security.core.userdetails.User(user.getEmail(),
+                user.getPassword(), authorities);
     }
 }
